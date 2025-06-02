@@ -10,8 +10,8 @@ return {
 		local hl = vim.api.nvim_get_hl(0, { name = "LineNr" })
 		local hl_b = vim.api.nvim_get_hl(0, { name = "LineNr" })
 		require("barbecue").setup({
-			show_dirname = false,
-			show_basename = false,
+			show_dirname = true,
+			show_basename = true,
 			show_modified = true, -- configurations go here
 
 			theme = {
@@ -26,7 +26,7 @@ return {
 				modified = { fg = hl.fg },
 
 				-- these highlights represent the _text_ of three main parts of barbecue
-				dirname = { fg = hl.fg },
+				dirname = { },
 				basename = { bold = true },
 				context = { bold = true },
 

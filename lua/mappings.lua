@@ -183,7 +183,7 @@ map("n", "<leader>ca", function()
 	require("tiny-code-action").code_action()
 end, { noremap = true, silent = true, desc = "Code Actions(LSP)" })
 
-map("n", "<leader>fm", function()
+map("n", "<leader>cF", function()
 	require("conform").format({ lsp_fallback = true })
 end, { desc = "general format file" })
 
