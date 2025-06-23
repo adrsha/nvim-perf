@@ -25,3 +25,20 @@ autocmd({ "UIEnter", "BufReadPost", "BufNewFile" }, {
         end
     end,
 })
+
+vim.o.autoread = true
+
+vim.api.nvim_create_autocmd(
+  {"FocusGained", "BufEnter", "CursorHold", "CursorHoldI"},
+  {
+    pattern = "*",
+    command = "checktime"
+  }
+)
+
+vim.api.nvim_create_autocmd("FileChangedShellPost", {
+  pattern = "*",
+  callback = function()
+    vim.notify("File changed on disk. Buffer reloaded.", vim.log.levels.WARN)
+  end,
+})

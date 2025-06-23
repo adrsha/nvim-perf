@@ -217,6 +217,13 @@ map("n", "<leader>rr", function()
 	vim.lsp.buf.rename()
 end, { desc = "Rename" })
 
+map('n', 'gco', '<Plug>(git-conflict-ours)')
+map('n', 'gct', '<Plug>(git-conflict-theirs)')
+map('n', 'gcb', '<Plug>(git-conflict-both)')
+map('n', 'gc0', '<Plug>(git-conflict-none)')
+map('n', 'gcn', '<Plug>(git-conflict-prev-conflict)')
+map('n', 'gcp', '<Plug>(git-conflict-next-conflict)')
+
 -- map("n", "<leader>rr", require("nvchad.lsp.renamer"), {desc = "NvRenamer"})
 
 map("n", "gr", vim.lsp.buf.references, { desc = "Show references" })

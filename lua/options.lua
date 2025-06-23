@@ -33,6 +33,7 @@ opt.cursorline = false
 opt.tabstop = 4
 opt.softtabstop = 4
 opt.shiftwidth = 0
+opt.autoread = true
 -- opt.autoindent = false
 opt.smartindent = true
 
@@ -75,6 +76,7 @@ g.neovide_light_radius = 5
 g.neovide_floating_z_height = 50
 g.neovide_cursor_vfx_mode = ""
 
+g.instant_username = "adrsha"
 opt.guifont = "Dank Mono:h16" -- text below applies for VimScript
 
 -- add binaries installed by mason.nvim to path
