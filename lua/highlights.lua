@@ -12,7 +12,7 @@ local function ensureColorNum(color)
 end
 
 local function mergeColors(color1, color2, weight)
-    weight = weight or 0.5 -- default to 50% merge
+    weight = weight or 0.5
     color1 = ensureColorNum(color1)
     color2 = ensureColorNum(color2)
 
@@ -30,42 +30,40 @@ local function mergeColors(color1, color2, weight)
     local g = math.floor(g1 * weight + g2 * (1 - weight))
     local b = math.floor(b1 * weight + b2 * (1 - weight))
 
-    -- Combine components back into a hex color
     return string.format("#%02X%02X%02X", r, g, b)
 end
 
 local function darkenColor(color, amount)
-    amount = amount or 0.1 -- default darkening amount
+    amount = amount or 0.1
 
-    -- Convert hex string to number if necessary
     if type(color) == "string" and color:sub(1, 1) == "#" then
         color = tonumber(color:sub(2), 16)
     end
 
-    -- Extract RGB components
     local r = math.floor(color / 0x10000)
     local g = math.floor((color % 0x10000) / 0x100)
     local b = color % 0x100
 
-    -- Darken each component
     r = math.max(math.floor(r * (1 - amount)), 0)
     g = math.max(math.floor(g * (1 - amount)), 0)
     b = math.max(math.floor(b * (1 - amount)), 0)
 
-    -- Combine components back into a hex color
     return string.format("#%02X%02X%02X", r, g, b)
 end
 
+-- Better color mapping using more theme-appropriate highlight groups
 local colors = {
-    green = vim.api.nvim_get_hl(0, { name = "Added" }).fg,
-    yellow = vim.api.nvim_get_hl(0, { name = "CurSearch" }).bg,
-    red = vim.api.nvim_get_hl(0, { name = "Removed" }).fg,
-    blue = vim.api.nvim_get_hl(0, { name = "DevIconLua" }).fg,
-    orange = vim.api.nvim_get_hl(0, { name = "IncSearch" }).bg,
-    cyan = vim.api.nvim_get_hl(0, { name = "Special" }).fg,
-    overlay = vim.api.nvim_get_hl(0, { name = "LineNr" }).fg,
-    base = vim.api.nvim_get_hl(0, { name = "ErrorMsg" }).bg,
-    darker = vim.api.nvim_get_hl(0, { name = "TelescopeBorder" }).bg,
+    green = vim.api.nvim_get_hl(0, { name = "DiagnosticOk" }).fg or vim.api.nvim_get_hl(0, { name = "DiffAdd" }).fg,
+    yellow = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg or vim.api.nvim_get_hl(0, { name = "WarningMsg" })
+    .fg,
+    red = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg or vim.api.nvim_get_hl(0, { name = "ErrorMsg" }).fg,
+    blue = vim.api.nvim_get_hl(0, { name = "DiagnosticInfo" }).fg or vim.api.nvim_get_hl(0, { name = "Function" }).fg,
+    orange = vim.api.nvim_get_hl(0, { name = "Number" }).fg or vim.api.nvim_get_hl(0, { name = "Constant" }).fg,
+    cyan = vim.api.nvim_get_hl(0, { name = "Type" }).fg or vim.api.nvim_get_hl(0, { name = "Identifier" }).fg,
+    overlay = vim.api.nvim_get_hl(0, { name = "Comment" }).fg,
+    base = vim.api.nvim_get_hl(0, { name = "Normal" }).bg,
+    darker = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg or
+    vim.api.nvim_get_hl(0, { name = "TelescopeBorder" }).bg,
 }
 
 vim.api.nvim_set_hl(0, "FloatBorder", { link = "TelescopeBorder" })

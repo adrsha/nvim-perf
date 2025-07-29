@@ -26,9 +26,10 @@ return {
         -- event = "User FilePost",
         main = "ibl",
         opts = {
-            -- indent = { char = "┃", highlight = "Whitespace" },
-            indent = { char = "│", highlight = "EndOfBuffer" },
-            scope = { char = "┃", highlight = "Added" },
+            -- indent = { char = "┃", highlight = "CursorLineFold" },
+            indent = { char = "│", highlight = "VertSplit" },
+            -- indent = { char = "│", highlight = "Whitespace" },
+            scope = { char = "│", highlight = "Whitespace" },
         },
     },
 

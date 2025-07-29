@@ -9,13 +9,6 @@ function _G.ReloadNvChadConfig()
     end
     -- Reload chadrc configuration
     dofile(vim.fn.stdpath("config") .. "/lua/chadrc.lua")
-    -- Approach 1: Try using Lazy's sync command which doesn't require plugin names
-    -- if pcall(require, "lazy") then
-    --   vim.cmd("Lazy sync")
-    -- end
-    -- Approach 2: If there's a specific plugin you always want to reload, you can specify it
-    -- For example, if you have a custom plugin:
-    -- vim.cmd("Lazy reload your-plugin-name")
     -- Reload UI components if possible
     pcall(function()
         require("base46").load_all_highlights()
@@ -23,8 +16,6 @@ function _G.ReloadNvChadConfig()
     vim.cmd("redraw")
     print("NvChad configuration reloaded!")
 end
-
-vim.api.nvim_create_user_command("ReloadNvChad", ReloadNvChadConfig, {})
 
 vim.api.nvim_create_user_command("ReloadNvChad", ReloadNvChadConfig, {})
 
@@ -62,46 +53,77 @@ end
 local options = {
 
     base46 = {
-        theme = "everblush", -- default theme
+        theme = "aquarium",
         hl_add = {},
         integrations = {},
         changed_themes = {
-            everblush = {
+            aquarium = {
                 base_16 = {
-                    base00 = '#10171A',
-                    base03 = '#233239',
-                    base05 = '#7c959b',
-                    base06 = '#7c959b',
-                    base07 = '#7c959b',
+                    base00 = '#20202A', -- background
+                    base01 = '#3b3b4d', -- lighter background (used for status bars, line number bg, etc.)
+                    base02 = '#44495E', -- selection background
+                    base03 = '#63718B', -- comments, invisibles, line highlighting
+                    base04 = '#C6D0E9', -- dark foreground (used for status bars)
+                    base05 = '#63718B', -- default foreground, caret, delimiters, operators
+                    base06 = '#C6D0E9', -- light foreground (not often used)
+                    base07 = '#E5E9F0', -- light background (not often used)
+                    base08 = '#ebb9b9', -- variables, XML tags, markup link text, markup lists, diff deleted
+                    base09 = '#ebe3b9', -- integers, boolean, constants, XML attributes, markup link url
+                    base0A = '#ebe3b9', -- classes, markup bold, search text background
+                    base0B = '#caf6bb', -- strings, inherited class, markup code, diff inserted
+                    base0C = '#b8dceb', -- support, regular expressions, escape characters, markup quotes
+                    base0D = '#cddbf9', -- functions, methods, attribute IDs, headings
+                    base0E = '#f6bbe7', -- keywords, storage, selector, markup italic, diff changed
+                    base0F = '#cc9b9d', -- deprecated, opening/closing embedded language tags
                 },
                 base_30 = {
-                    darker_black = "#0D1215", 
-                    black2 = "#181F22",
-                    one_bg = "#181F22",
-                    one_bg2 = "#181F22",
-                    one_bg3 = "#181F22",
-                    grey = '#233239',
-                    grey_fg = '#233239',
-                    light_grey = '#233239',
+                    white = '#C6D0E9',
+                    darker_black = '#1a1a22',
+                    black = '#20202A',        -- main background
+                    black2 = '#242430',       -- slightly lighter than bg
+                    one_bg = '#2a2a36',       -- one step lighter
+                    one_bg2 = '#323240',      -- two steps lighter
+                    one_bg3 = '#3a3a48',      -- three steps lighter
+                    grey = '#44495E',         -- for borders, inactive elements
+                    grey_fg = '#4a4f64',      -- slightly lighter grey
+                    grey_fg2 = '#505570',     -- even lighter grey
+                    light_grey = '#5a5f74',
+                    red = '#ebb9b9',
+                    baby_pink = '#f6bbe7',
+                    pink = '#cc9b9d',
+                    line = '#2C2E3E',         -- for indent lines, etc.
+                    green = '#caf6bb',
+                    vibrant_green = '#a3ccad',
+                    blue = '#cddbf9',
+                    nord_blue = '#B8C9EA',
+                    yellow = '#ebe3b9',
+                    sun = '#d1ba97',
+                    purple = '#f6bbe7',
+                    dark_purple = '#c497b3',
+                    teal = '#b8dceb',
+                    orange = '#ebe3b9',
+                    cyan = '#95C2D1',
+                    statusline_bg = '#242430',
+                    lightbg = '#2a2a36',
+                    pmenu_bg = '#cddbf9',
+                    folder_bg = '#cddbf9',
                 }
             },
         },
         transparency = false,
-        theme_toggle = { "everblush", "one_light" },
     },
 
     ui = {
         cmp = {
-            icons_left = true,   -- only for non-atom styles!
+            icons_left = true,
             lspkind_text = true,
-            style = "flat_dark", -- default/flat_light/flat_dark/atom/atom_colored
+            style = "flat_dark",
             format_colors = {
-                tailwind = true, -- will work for css lsp too
+                tailwind = true,
                 icon = "󱓻",
             },
         },
-        telescope = { style = "borderless" }, -- borderless / bordered
-        -- lazyload it when there are 1+ buffers
+        telescope = { style = "borderless" },
         tabufline = {
             enabled = false,
             lazyload = true,
@@ -129,7 +151,7 @@ local options = {
 
     colorify = {
         enabled = false,
-        mode = "virtual", -- fg, bg, virtual
+        mode = "virtual",
         virt_text = "󱓻 ",
         highlight = { hex = true, lspvars = true },
     },
