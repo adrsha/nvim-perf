@@ -9,7 +9,15 @@ opt.splitright = true
 opt.fixendofline = true
 opt.endofline = true
 
-opt.list = false
+opt.list = true
+opt.listchars = {
+    space = "·",     -- middle dot for spaces
+    tab = "→ ",      -- arrow for tab followed by a space
+    trail = "•",     -- dot for trailing spaces
+    extends = "⟩",   -- when line is too long
+    precedes = "⟨",  -- when line continues to the left
+    nbsp = "␣"       -- non-breaking space
+}
 opt.termguicolors = true
 opt.conceallevel = 2
 opt.showtabline = 0

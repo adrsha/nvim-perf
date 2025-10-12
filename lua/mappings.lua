@@ -120,6 +120,7 @@ vim.g.maplocalleader = ";"
 
 map("c", "<C-w>", ":w !sudo tee % > /dev/null<CR>", { desc = "Save file with sudo in command mode" })
 
+-- map("v", "<s-i>", "<Esc>", { desc = "Escape from visual mode" })
 -- map("n", "o", "o<Esc>^Da", { desc = "Next line without commenting" })
 -- map("n", "O", "O<Esc>^Da", { desc = "Next line without commenting" })
 
@@ -141,7 +142,7 @@ map("n", "<A-j>", ":m .+1<CR>==", { desc = "Move current line down" })
 map("n", "<A-k>", ":m .-2<CR>==", { desc = "Move current line up" })
 
 map("n", "<C-n>", "*", { desc = "Find all instances of word under cursor" })
-map("v", "<C-n>", "*", { desc = "Find all instances of selected word" })
+map("v", "<C-n>", "*<Esc><s-n>", { desc = "Find all instances of selected word" })
 
 map("n", "<C-y>", "<cmd>%y+<CR>", { desc = "general copy whole file" })
 
@@ -201,13 +202,18 @@ map("n", "<leader>cc", function()
     require("minty.huefy").open()
 end, { desc = "Color Picker" })
 
-map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
-map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
-map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
-map("n", "gtd", vim.lsp.buf.type_definition, { desc = "Go to type definition" })
-map("n", "<leader>sh", vim.lsp.buf.signature_help, { desc = "Show signature help" })
-map("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, { desc = "Add workspace folder" })
-map("n", "<leader>wr", vim.lsp.buf.remove_workspace_folder, { desc = "Remove workspace folder" })
+-- map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
+-- map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
+-- map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
+-- map("n", "gtd", vim.lsp.buf.type_definition, { desc = "Go to type definition" })
+-- map("n", "<leader>sh", vim.lsp.buf.signature_help, { desc = "Show signature help" })
+-- map("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, { desc = "Add workspace folder" })
+-- map("n", "<leader>wr", vim.lsp.buf.remove_workspace_folder, { desc = "Remove workspace folder" })
+-- map("n", "gr", vim.lsp.buf.references, { desc = "Show references" })
+map('n', 'gD', '<CMD>Glance definitions<CR>')
+map('n', 'gr', '<CMD>Glance references<CR>')
+map('n', 'gt', '<CMD>Glance type_definitions<CR>')
+map('n', 'gi', '<CMD>Glance implementations<CR>')
 
 map("n", "<leader>wl", function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
@@ -231,5 +237,4 @@ end, { desc = "Git Show hunk" })
 
 -- map("n", "<leader>rr", require("nvchad.lsp.renamer"), {desc = "NvRenamer"})
 
-map("n", "gr", vim.lsp.buf.references, { desc = "Show references" })
 map("n", "L", toggle_line_diagnostics, { desc = "Show references" })

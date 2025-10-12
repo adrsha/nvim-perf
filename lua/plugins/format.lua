@@ -17,7 +17,7 @@ return {
             stylua = {
                 prepend_args = { "--indent-type", "Spaces", "--quote-style", "AutoPreferDouble", "--maintain-line-endings" }
             },
-            prettierd = {
+            prettier = {
                 prepend_args = { "--end-of-line", "lf", "--print-width", "100" }
             },
             -- Add specific options for other formatters as needed

@@ -50,14 +50,27 @@ local function darkenColor(color, amount)
 
     return string.format("#%02X%02X%02X", r, g, b)
 end
+local function lightenColor(color, amount)
+    amount = amount or 0.1
+     if type(color) == "string" and color:sub(1, 1) == "#" then
+        color = tonumber(color:sub(2), 16)
+    end
+
+    local r = math.floor(color / 0x10000)
+    local g = math.floor((color % 0x10000) / 0x100)
+    local b = color % 0x100
+    r = math.min(math.floor(r + r * amount), 255)
+    g = math.min(math.floor(g + g * amount), 255)
+    b = math.min(math.floor(b + b * amount), 255)
+    return string.format("#%02X%02X%02X", r, g, b)
+end
 
 -- Better color mapping using more theme-appropriate highlight groups
 local colors = {
     green = vim.api.nvim_get_hl(0, { name = "DiagnosticOk" }).fg or vim.api.nvim_get_hl(0, { name = "DiffAdd" }).fg,
-    yellow = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg or vim.api.nvim_get_hl(0, { name = "WarningMsg" })
-    .fg,
+    yellow = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg or vim.api.nvim_get_hl(0, { name = "WarningMsg" }).fg,
     red = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg or vim.api.nvim_get_hl(0, { name = "ErrorMsg" }).fg,
-    blue = vim.api.nvim_get_hl(0, { name = "DiagnosticInfo" }).fg or vim.api.nvim_get_hl(0, { name = "Function" }).fg,
+    blue = vim.api.nvim_get_hl(0, { name = "Directory" }).fg or vim.api.nvim_get_hl(0, { name = "Function" }).fg,
     orange = vim.api.nvim_get_hl(0, { name = "Number" }).fg or vim.api.nvim_get_hl(0, { name = "Constant" }).fg,
     cyan = vim.api.nvim_get_hl(0, { name = "Type" }).fg or vim.api.nvim_get_hl(0, { name = "Identifier" }).fg,
     overlay = vim.api.nvim_get_hl(0, { name = "Comment" }).fg,
@@ -117,6 +130,14 @@ local ColorSets = {
         bold = true,
         italic = true,
     },
+    -- LspCodeLens = {
+    --     bg = colors.darker,
+    -- },
+    SymbolUsageRounding = { fg = colors.darker },
+    SymbolUsageContent = { bg = colors.darker, fg = lightenColor(colors.overlay, 0.7), bold = true },
+    SymbolUsageRef = { bg = colors.darker, fg = colors.blue},
+    SymbolUsageDef = { bg = colors.darker, fg = colors.red},
+    SymbolUsageImpl = { bg = colors.darker, fg = colors.yellow},
     -- DiagnosticUnderlineHint = { fg = colors.green },
     -- DiagnosticUnderlineWarn = { fg = colors.yellow },
     -- DiagnosticUnderlineError = { fg = colors.red },
@@ -136,6 +157,15 @@ local ColorSets = {
     RainbowDelimiterOrange = { fg = colors.orange },
     RainbowDelimiterCyan = { fg = colors.cyan },
     RainbowDelimiterViolet = { fg = colors.blue },
+    GitConflictCurrent = {
+        bg = mergeColors(colors.yellow, colors.base, 0.1),
+    },
+    GitConflictCurrentLabel = { bg = colors.yellow, fg=colors.base },
+    GitConflictIncoming = {
+        bg = mergeColors(colors.blue, colors.base, 0.1),
+    },
+    GitConflictIncomingLabel = { bg = colors.blue, fg=colors.base},
+    RenderMarkdownCode = { bg = colors.darker}
 }
 
 for hl, col in pairs(ColorSets) do
