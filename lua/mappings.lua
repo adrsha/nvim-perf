@@ -1,122 +1,4 @@
--- Create a namespace for line diagnostics virtual text
-local line_diagnostics_ns = vim.api.nvim_create_namespace("line_diagnostics")
--- Flag to track whether diagnostics are currently shown
-local diagnostics_visible = false
--- Variable to store the line number where diagnostics are shown
-local diagnostic_line_nr = nil
--- Store extmark IDs
-local extmark_ids = {}
-
--- Function to toggle diagnostics on the current line
-local function toggle_line_diagnostics()
-    local bufnr = vim.api.nvim_get_current_buf()
-    local line_nr = vim.api.nvim_win_get_cursor(0)[1] - 1 -- Get current line number
-
-    -- If diagnostics are already visible on the same line, clear them
-    if diagnostics_visible and diagnostic_line_nr == line_nr then
-        -- Clear virtual text
-        vim.api.nvim_buf_clear_namespace(bufnr, line_diagnostics_ns, 0, -1)
-        for _, id in ipairs(extmark_ids) do
-            vim.api.nvim_buf_del_extmark(bufnr, line_diagnostics_ns, id)
-        end
-        diagnostics_visible = false
-        diagnostic_line_nr = nil
-        extmark_ids = {}
-        return
-    end
-
-    -- Otherwise, clear any previous diagnostics and show diagnostics for the current line
-    if diagnostics_visible then
-        vim.api.nvim_buf_clear_namespace(bufnr, line_diagnostics_ns, 0, -1)
-        for _, id in ipairs(extmark_ids) do
-            vim.api.nvim_buf_del_extmark(bufnr, line_diagnostics_ns, id)
-        end
-        extmark_ids = {}
-    end
-
-    -- Get diagnostics for the current line
-    local diagnostics = vim.diagnostic.get(bufnr, { lnum = line_nr })
-
-    -- Return if no diagnostics are available on this line
-    if #diagnostics == 0 then
-        return
-    end
-
-    -- Get the indent of the current line
-    local current_line = vim.api.nvim_buf_get_lines(bufnr, line_nr, line_nr + 1, false)[1]
-    local indent = current_line:match("^%s*")
-
-    -- Define a table to map diagnostic severities to highlight groups and icons
-    local severity_to_hl = {
-        [vim.diagnostic.severity.ERROR] = { hl = "DiagnosticOpenError", icon = "󰅙  " },
-        [vim.diagnostic.severity.WARN] = { hl = "DiagnosticOpenWarn", icon = "  " },
-        [vim.diagnostic.severity.INFO] = { hl = "DiagnosticOpenInfo", icon = "󰋼  " },
-        [vim.diagnostic.severity.HINT] = { hl = "DiagnosticOpenHint", icon = "󰌵  " },
-    }
-
-    -- Create a table to hold all virtual lines
-    local all_virtual_lines = {}
-
-    -- Set virtual lines for each diagnostic
-    for i, diagnostic in ipairs(diagnostics) do
-        local virtual_text = {
-            { indent },
-            { " ", "DiagnosticOpenSep" }, -- 󰮷
-            { i == 1 and " 󰦺 " or " : ", "DiagnosticOpenArrow" },
-            { " ", "DiagnosticOpenSep" },
-        }
-
-        -- Get the appropriate highlight group and icon for the diagnostic severity
-        local severity = severity_to_hl[diagnostic.severity] or { hl = "DiagnosticVirtualText", icon = "" }
-
-        -- Add the diagnostic message with the correct icon and highlight group
-        table.insert(virtual_text, { " " .. severity.icon .. diagnostic.message .. " ", severity.hl })
-        table.insert(virtual_text, { " ", "DiagnosticOpenSep" })
-
-        -- Add this virtual_text to our all_virtual_lines table
-        table.insert(all_virtual_lines, virtual_text)
-    end
-
-    -- Set all virtual lines in a single extmark
-    local id = vim.api.nvim_buf_set_extmark(bufnr, line_diagnostics_ns, line_nr, 0, {
-        virt_lines = all_virtual_lines,
-        virt_lines_above = false,
-        hl_mode = "combine",
-    })
-    table.insert(extmark_ids, id)
-
-    diagnostics_visible = true
-    diagnostic_line_nr = line_nr
-end
-
--- Autocommand to clear diagnostics when the cursor moves
-vim.api.nvim_create_autocmd("CursorMoved", {
-    callback = function()
-        -- Clear diagnostics if moving to a different line
-        if diagnostic_line_nr and diagnostic_line_nr ~= vim.api.nvim_win_get_cursor(0)[1] - 1 then
-            local bufnr = vim.api.nvim_get_current_buf()
-            vim.api.nvim_buf_clear_namespace(bufnr, line_diagnostics_ns, 0, -1)
-            for _, id in ipairs(extmark_ids) do
-                vim.api.nvim_buf_del_extmark(bufnr, line_diagnostics_ns, id)
-            end
-            diagnostics_visible = false
-            diagnostic_line_nr = nil
-            extmark_ids = {}
-        end
-    end,
-})
-
---
---
---   MAPPINGS
---
---
---
-
-local opts = { noremap = true, silent = true }
 local map = vim.keymap.set -- for conciseness
-vim.g.mapleader = " "
-vim.g.maplocalleader = ";"
 
 map("c", "<C-w>", ":w !sudo tee % > /dev/null<CR>", { desc = "Save file with sudo in command mode" })
 
@@ -162,7 +44,8 @@ map("n", "<S-Tab>", "<CMD>bprev<CR>", { desc = "Go to previous buffer" })
 map("n", "<leader><leader>", "<CMD>Telescope<CR>", { desc = "Open Telescope main menu" })
 map("n", "<leader>fr", "<CMD>Telescope oldfiles<CR>", { desc = "Find recent files" })
 -- map("n", "<leader>ff", "<CMD>Telescope find_files<CR>", { desc = "Find files" })
-map("n", "<leader>ff", "<CMD>Oil --float<CR>", { desc = "Find files" })
+map("n", "<leader>ff", function() require('oil').open_float() end, { desc = "Find files" })
+-- vim.keymap.set("n", "-", "<CMD>Oil<CR>", { desc = "Open parent directory" })
 
 map(
     "n",
@@ -188,6 +71,11 @@ map("n", "<leader>cF", function()
     require("conform").format({ lsp_fallback = true })
 end, { desc = "general format file" })
 
+map("n", "<leader>cr", function()
+    require "nvchad.lsp.renamer"
+    -- vim.lsp.buf.rename()
+end, { desc = "Rename" })
+
 map("n", "<leader>wK", "<cmd>WhichKey <CR>", { desc = "whichkey all keymaps" })
 
 map("n", "<leader>wk", function()
@@ -198,10 +86,6 @@ map({ "n", "t" }, "<A-i>", function()
     require("nvchad.term").toggle({ pos = "float", id = "floatTerm" })
 end, { desc = "terminal toggle floating term" })
 
-map("n", "<leader>cc", function()
-    require("minty.huefy").open()
-end, { desc = "Color Picker" })
-
 -- map("n", "gD", vim.lsp.buf.declaration, { desc = "Go to declaration" })
 -- map("n", "gd", vim.lsp.buf.definition, { desc = "Go to definition" })
 -- map("n", "gi", vim.lsp.buf.implementation, { desc = "Go to implementation" })
@@ -210,31 +94,83 @@ end, { desc = "Color Picker" })
 -- map("n", "<leader>wa", vim.lsp.buf.add_workspace_folder, { desc = "Add workspace folder" })
 -- map("n", "<leader>wr", vim.lsp.buf.remove_workspace_folder, { desc = "Remove workspace folder" })
 -- map("n", "gr", vim.lsp.buf.references, { desc = "Show references" })
-map('n', 'gD', '<CMD>Glance definitions<CR>')
+map('n', 'gd', '<CMD>Glance definitions<CR>')
 map('n', 'gr', '<CMD>Glance references<CR>')
-map('n', 'gt', '<CMD>Glance type_definitions<CR>')
+map('n', 'gD', '<CMD>Glance type_definitions<CR>')
 map('n', 'gi', '<CMD>Glance implementations<CR>')
 
 map("n", "<leader>wl", function()
     print(vim.inspect(vim.lsp.buf.list_workspace_folders()))
 end, { desc = "List workspace folders" })
 
-map("n", "<leader>rr", function()
-    vim.lsp.buf.rename()
-end, { desc = "Rename" })
+map("n", "<leader>re", function()
+    vim.cmd.RustLsp({ 'explainError', 'current' })
+end, { desc = "Rust Explain error" })
 
-map('n', 'gco', '<Plug>(git-conflict-ours)')
-map('n', 'gct', '<Plug>(git-conflict-theirs)')
-map('n', 'gcb', '<Plug>(git-conflict-both)')
-map('n', 'gc0', '<Plug>(git-conflict-none)')
-map('n', 'gcn', '<Plug>(git-conflict-prev-conflict)')
-map('n', 'gcp', '<Plug>(git-conflict-next-conflict)')
+map("n", "<leader>rj", function()
+    vim.cmd.RustLsp('joinLines')
+end, { desc = "Rust Join Lines" })
+
+map("n", "<leader>rrd", function()
+    vim.cmd.RustLsp('relatedDiagnostics')
+end, { desc = "Rust related diagnostics" })
+
+vim.keymap.set("n", "<leader>tih", function()
+    vim.lsp.inlay_hint.enable(
+        not vim.lsp.inlay_hint.is_enabled()
+    )
+end, { desc = "Toggle todo in telescope" })
+
+map('n', '<leader>td', function()
+    local builtin = require("telescope.builtin")
+    local themes  = require("telescope.themes")
+
+    builtin.diagnostics(themes.get_ivy())
+end)
+map('n', '<leader>tt', '<CMD>TodoTelescope<CR>')
+-- map('n', 'gco', '<Plug>(git-conflict-ours)')
+-- map('n', 'gct', '<Plug>(git-conflict-theirs)')
+-- map('n', 'gcb', '<Plug>(git-conflict-both)')
+-- map('n', 'gc0', '<Plug>(git-conflict-none)')
+-- map('n', 'gcn', '<Plug>(git-conflict-prev-conflict)')
+-- map('n', 'gcp', '<Plug>(git-conflict-next-conflict)')
+
+map('n', '<leader>j', function() require('mini.splitjoin').toggle() end)
 
 map('n', 'g<space>', function()
     require("gitsigns").preview_hunk_inline()
 end, { desc = "Git Show hunk" })
 
 
--- map("n", "<leader>rr", require("nvchad.lsp.renamer"), {desc = "NvRenamer"})
+map("n", "<S-l>", ":noh<CR>", { desc = "Reset searches" })
+map("n", "<S-k>", function()
+    require("pretty_hover").hover()
+end, { desc = "Reset searches" })
 
-map("n", "L", toggle_line_diagnostics, { desc = "Show references" })
+map("n", "<C-k>", function()
+    require('treewalker').move_up()
+end, { desc = "Treesitter motion Up" })
+map("n", "<C-j>", function()
+    require('treewalker').move_down()
+end, { desc = "Treesitter motion Down" })
+map("n", "<C-l>", function()
+    require('treewalker').move_in()
+end, { desc = "Treesitter motion Right" })
+map("n", "<C-h>", function()
+    require('treewalker').move_out()
+end, { desc = "Treesitter motion Left" })
+map("n", "<C-A-j>", function()
+    require('treewalker').swap_down()
+end, { desc = "Treesitter motion Down" })
+map("n", "<C-A-k>", function()
+    require('treewalker').swap_up()
+end, { desc = "Treesitter motion Up" })
+map("n", "<C-A-l>", function()
+    require('treewalker').swap_in()
+end, { desc = "Treesitter motion Right" })
+map("n", "<C-A-h>", function()
+    require('treewalker').swap_out()
+end, { desc = "Treesitter motion Left" })
+-- map("n", "<S-l>", function ()
+--
+-- end, { desc = "Reset searches" })

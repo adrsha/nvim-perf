@@ -36,7 +36,7 @@ opt.ignorecase = true
 opt.smartcase = true
 opt.scrolloff = 0
 opt.mouse = "a"
-opt.cursorline = false
+opt.cursorline = true
 
 opt.tabstop = 4
 opt.softtabstop = 4
@@ -59,6 +59,7 @@ opt.signcolumn = "yes"
 opt.numberwidth = 3
 opt.whichwrap:append("<,>,[,],h,l")
 
+opt.sessionoptions = "blank,buffers,curdir,folds,help,tabpages,winsize,winpos,terminal,localoptions"
 opt.formatoptions:remove({ "c", "r", "o" }) -- don't insert the current comment leader automatically for auto-wrapping comments using 'textwidth', hitting <Enter> in insert mode, or hitting 'o' or 'O' in normal mode.
 -- disable some default providers
 g.loaded_node_provider = 0

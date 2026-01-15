@@ -14,11 +14,10 @@ return {
             NS
         )
 
-
         -- Aligns to a string with previews
         vim.keymap.set(
             'x',
-            '<C-=>',
+            '<A-=>',
             function()
                 require 'align'.align_to_string({
                     preview = true,

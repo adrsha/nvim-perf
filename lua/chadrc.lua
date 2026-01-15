@@ -1,60 +1,18 @@
-local configs = require("lsp_config")
+-- This file needs to have same structure as nvconfig.lua
+-- https://github.com/NvChad/ui/blob/v3.0/lua/nvconfig.lua
+-- Please read that file to know all available options :(
+local M                    = {}
+local generated_theme_path = vim.fn.expand("~/.config/nvim/generated_theme.lua");
+local generated_theme      = nil;
 
-function _G.ReloadNvChadConfig()
-    -- Clear cached modules from package.loaded
-    for name, _ in pairs(package.loaded) do
-        if name:match("^custom") or name:match("^core") or name:match("^base46") then
-            package.loaded[name] = nil
-        end
-    end
-    -- Reload chadrc configuration
-    dofile(vim.fn.stdpath("config") .. "/lua/chadrc.lua")
-    -- Reload UI components if possible
-    pcall(function()
-        require("base46").load_all_highlights()
-    end)
-    vim.cmd("redraw")
-    print("NvChad configuration reloaded!")
-end
+if vim.fn.filereadable(generated_theme_path) == 1 then
+    local ok, theme = pcall(dofile, generated_theme_path);
+    if ok then
+        generated_theme = theme;
+    end;
+end;
 
-vim.api.nvim_create_user_command("ReloadNvChad", ReloadNvChadConfig, {})
-
-local servers = {
-    html = {},
-    cssls = {},
-    clangd = {},
-    astro = {},
-    bashls = {},
-    lua_ls = {},
-    ts_ls = {},
-    nil_ls = {},
-    rust_analyzer = {
-        inlayHints = false;
-    },
-    kotlin_language_server = {},
-
-    pyright = {
-        settings = {
-            python = {
-                analysis = {
-                    autoSearchPaths = true,
-                    typeCheckingMode = "basic",
-                },
-            },
-        },
-    },
-}
-
-for name, opts in pairs(servers) do
-    opts.on_init = configs.on_init
-    opts.on_attach = configs.on_attach
-    opts.capabilities = configs.capabilities
-
-    require("lspconfig")[name].setup(opts)
-end
-
-local options = {
-
+M = {
     base46 = {
         theme = "everblush",
         hl_add = {},
@@ -82,19 +40,19 @@ local options = {
                 base_30 = {
                     white = '#C6D0E9',
                     darker_black = '#1a1a22',
-                    black = '#20202A',        -- main background
-                    black2 = '#242430',       -- slightly lighter than bg
-                    one_bg = '#2a2a36',       -- one step lighter
-                    one_bg2 = '#323240',      -- two steps lighter
-                    one_bg3 = '#3a3a48',      -- three steps lighter
-                    grey = '#44495E',         -- for borders, inactive elements
-                    grey_fg = '#4a4f64',      -- slightly lighter grey
-                    grey_fg2 = '#505570',     -- even lighter grey
+                    black = '#20202A',    -- main background
+                    black2 = '#242430',   -- slightly lighter than bg
+                    one_bg = '#2a2a36',   -- one step lighter
+                    one_bg2 = '#323240',  -- two steps lighter
+                    one_bg3 = '#3a3a48',  -- three steps lighter
+                    grey = '#44495E',     -- for borders, inactive elements
+                    grey_fg = '#4a4f64',  -- slightly lighter grey
+                    grey_fg2 = '#505570', -- even lighter grey
                     light_grey = '#5a5f74',
                     red = '#ebb9b9',
                     baby_pink = '#f6bbe7',
                     pink = '#cc9b9d',
-                    line = '#2C2E3E',         -- for indent lines, etc.
+                    line = '#2C2E3E', -- for indent lines, etc.
                     green = '#caf6bb',
                     vibrant_green = '#a3ccad',
                     blue = '#cddbf9',
@@ -111,6 +69,12 @@ local options = {
                     pmenu_bg = '#cddbf9',
                     folder_bg = '#cddbf9',
                 }
+            },
+            everblush = generated_theme and generated_theme.everblush or {
+                base_16 = {
+                    base00 = '#131313', -- background
+                    -- base00 = '#0e1416', -- background
+                },
             },
             chadtain = {
                 base_16 = {
@@ -134,19 +98,19 @@ local options = {
                 base_30 = {
                     white = '#444F4C',
                     darker_black = '#0d1513',
-                    black = '#131C19',        -- main background
-                    black2 = '#1a2622',       -- slightly lighter than bg
-                    one_bg = '#1f2b27',       -- one step lighter
-                    one_bg2 = '#242f2c',      -- two steps lighter
-                    one_bg3 = '#293431',      -- three steps lighter
-                    grey = '#2c382d',         -- for borders, inactive elements
-                    grey_fg = '#323d39',      -- slightly lighter grey
-                    grey_fg2 = '#38433f',     -- even lighter grey
+                    black = '#131C19',    -- main background
+                    black2 = '#1a2622',   -- slightly lighter than bg
+                    one_bg = '#1f2b27',   -- one step lighter
+                    one_bg2 = '#242f2c',  -- two steps lighter
+                    one_bg3 = '#293431',  -- three steps lighter
+                    grey = '#2c382d',     -- for borders, inactive elements
+                    grey_fg = '#323d39',  -- slightly lighter grey
+                    grey_fg2 = '#38433f', -- even lighter grey
                     light_grey = '#3e4845',
                     red = '#735959',
                     baby_pink = '#5e526a',
                     pink = '#4e3837',
-                    line = '#1f2b27',         -- for indent lines, etc.
+                    line = '#1f2b27', -- for indent lines, etc.
                     green = '#395242',
                     vibrant_green = '#2c3f33',
                     blue = '#41575c',
@@ -205,12 +169,18 @@ local options = {
     mason = { pkgs = {} },
 
     colorify = {
-        enabled = false,
+        enabled = true,
         mode = "virtual",
         virt_text = "󱓻 ",
         highlight = { hex = true, lspvars = true },
     },
 }
 
-local status, chadrc = pcall(require, "chadrc")
-return vim.tbl_deep_extend("force", options, status and chadrc or {})
+-- M.nvdash = { load_on_startup = true }
+-- M.ui = {
+--       tabufline = {
+--          lazyload = false
+--      }
+-- }
+
+return M
