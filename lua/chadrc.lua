@@ -14,7 +14,7 @@ end;
 
 M = {
     base46 = {
-        theme = "everblush",
+        theme = "chadtain",
         hl_add = {},
         integrations = {},
         changed_themes = {
@@ -72,8 +72,7 @@ M = {
             },
             everblush = generated_theme and generated_theme.everblush or {
                 base_16 = {
-                    base00 = '#131313', -- background
-                    -- base00 = '#0e1416', -- background
+                    base00 = '#0e1416', -- background
                 },
             },
             chadtain = {

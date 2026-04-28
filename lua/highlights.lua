@@ -1,40 +1,38 @@
-local lightenColor = require("utils/colors").lightenColor;
-local darkenColor  = require("utils/colors").darkenColor;
-local mergeColors  = require("utils/colors").mergeColors;
+local lightenColor         = require("utils/colors").lightenColor;
+local darkenColor          = require("utils/colors").darkenColor;
+local mergeColors          = require("utils/colors").mergeColors;
+local base46               = require("base46");
 
--- Check if transparency is enabled
+local base_16              = base46.get_theme_tb("base_16");
+local base_30              = base46.get_theme_tb("base_30");
+
 local transparency_enabled = vim.g.transparency or false;
 
--- Get a guaranteed solid fallback color from Visual
-local visual_bg            = vim.api.nvim_get_hl(0, { name = "ColorColumn" }).bg;
-local fallback_solid_bg    = visual_bg and darkenColor(visual_bg, 0.7) or 0x1e2e2e;
-
--- Get solid backgrounds - these are ALWAYS solid regardless of transparency setting
--- When transparency is enabled, Normal.bg might be nil, so use fallback
+-- Solid fallback derived from theme palette
+local fallback_solid_bg    = tonumber("0x" .. base_30.darker_black:sub(2));
 local normal_bg_raw        = vim.api.nvim_get_hl(0, { name = "Normal" }).bg;
 local normal_bg            = (transparency_enabled and not normal_bg_raw)
     and fallback_solid_bg
     or (normal_bg_raw or fallback_solid_bg);
-local float_bg             = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg or normal_bg;
+local float_bg_raw         = vim.api.nvim_get_hl(0, { name = "NormalFloat" }).bg;
+local float_bg             = float_bg_raw or normal_bg;
 local telescope_border_bg  = vim.api.nvim_get_hl(0, { name = "TelescopeBorder" }).bg or float_bg;
 
--- Better color mapping using more theme-appropriate highlight groups
+-- Colors sourced directly from the chadrc theme palette
+local function hex(h)
+    return tonumber("0x" .. h:sub(2));
+end;
+
 local colors               = {
-    green   = vim.api.nvim_get_hl(0, { name = "DiagnosticOk" }).fg
-        or vim.api.nvim_get_hl(0, { name = "DiffAdd" }).fg,
-    yellow  = vim.api.nvim_get_hl(0, { name = "DiagnosticWarn" }).fg
-        or vim.api.nvim_get_hl(0, { name = "WarningMsg" }).fg,
-    red     = vim.api.nvim_get_hl(0, { name = "DiagnosticError" }).fg
-        or vim.api.nvim_get_hl(0, { name = "ErrorMsg" }).fg,
-    blue    = vim.api.nvim_get_hl(0, { name = "Directory" }).fg
-        or vim.api.nvim_get_hl(0, { name = "Function" }).fg,
-    orange  = vim.api.nvim_get_hl(0, { name = "Number" }).fg
-        or vim.api.nvim_get_hl(0, { name = "Constant" }).fg,
-    cyan    = vim.api.nvim_get_hl(0, { name = "Type" }).fg
-        or vim.api.nvim_get_hl(0, { name = "Identifier" }).fg,
-    overlay = vim.api.nvim_get_hl(0, { name = "Comment" }).fg,
-    base    = normal_bg, -- Always use solid color for merging
-    darker  = float_bg,  -- Always solid
+    green   = hex(base_30.green),
+    yellow  = hex(base_30.yellow),
+    red     = hex(base_30.red),
+    blue    = hex(base_30.blue),
+    orange  = hex(base_30.orange),
+    cyan    = hex(base_30.cyan),
+    overlay = hex(base_30.grey_fg),
+    base    = normal_bg,
+    darker  = float_bg,
 };
 
 -- Override Normal background if transparency is enabled
