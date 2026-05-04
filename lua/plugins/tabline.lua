@@ -1,32 +1,78 @@
+local base46               = require("base46");
+
+local base_16              = base46.get_theme_tb("base_16");
+local base_30              = base46.get_theme_tb("base_30");
+
 return {
-    "kdheepak/tabline.nvim",
-    event = { 'BufReadPost' },
-    config = function()
-        require("tabline").setup({
-            -- Defaults configuration options
-            enable = true,
-            options = {
-                -- If lualine is installed tabline will use separators configured in lualine by default.
-                -- These options can be used to override those settings.
-                section_separators = { " ", " " },
-                component_separators = { " ", " " },
-                max_bufferline_percent = 100, -- set to nil by default, and it uses vim.o.columns * 2/3
-                show_tabs_always = false, -- this shows tabs only when there are more than one tab or if the first tab is named
-                show_devicons = true, -- this shows devicons in buffer section
-                show_bufnr = false, -- this appends [bufnr] to buffer section,
-                show_filename_only = true, -- shows base filename only instead of relative path in filename
-                modified_icon = "", -- change the default modified icon
-                modified_italic = true, -- set to true by default; this determines whether the filename turns italic if modified
-                show_tabs_only = false, -- this shows only tabs instead of tabs + buffers
+    'nvim-lualine/lualine.nvim',
+    lazy = false,
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function ()
+        local bubbles_theme = {
+            normal = {
+                a = { fg = base_30.white, bg = base_16.base00 },
+                b = { fg = base_30.grey_fg, bg = base_16.base00 },
+                c = { fg = base_30.grey_fg, bg = base_16.base00 },
             },
-        })
-        vim.cmd([[
-      set guioptions-=e " Use showtabline in gui vim
-      set sessionoptions+=tabpages,globals " store tabpages and globals in session
-    ]])
-    end,
-    dependencies = {
-        { "hoob3rt/lualine.nvim",         opt = true },
-        { "kyazdani42/nvim-web-devicons", opt = true }
-    },
+
+            insert = { a = { fg = base_30.black, bg = base_30.blue } },
+            visual = { a = { fg = base_30.black, bg = base_30.cyan } },
+            replace = { a = { fg = base_30.black, bg = base_30.red } },
+
+            inactive = {
+                a = { fg = base_30.grey_fg, bg = base_16.base00 },
+                b = { fg = base_30.grey_fg, bg = base_16.base00 },
+                c = { fg = base_30.grey_fg, bg = base_16.base00 },
+            },
+        }
+
+        require('lualine').setup {
+            options = {
+                theme = bubbles_theme,
+                component_separators = '',
+                -- section_separators = { left = '', right = '' },
+                always_show_tabline = true,
+            },
+            sections = {
+                -- lualine_a = { { 'mode', separator = { left = '' }, right_padding = 2 } },
+                -- lualine_b = { 'filename', 'branch' },
+                -- lualine_c = {
+                --     '%=', --[[ add your center components here in place of this comment ]]
+                -- },
+                -- lualine_x = {},
+                -- lualine_y = { 'filetype', 'progress' },
+                -- lualine_z = {
+                --     { 'location', separator = { right = '' }, left_padding = 2 },
+                -- },
+            },
+            inactive_sections = {
+                -- lualine_a = { 'filename' },
+                -- lualine_b = {},
+                -- lualine_c = {},
+                -- lualine_x = {},
+                -- lualine_y = {},
+                -- lualine_z = { 'location' },
+            },
+            tabline = {
+                lualine_a = { {
+                    'buffers',
+                    right_padding = 2,
+                    mode = 0,
+                    path = 0,
+
+                    symbols = {
+                        modified = ' ●',      -- Text to show when the buffer is modified
+                        alternate_file = '', -- Text to show to identify the alternate file
+                        directory =  '',     -- Text to show when the buffer is a directory
+                    },
+                } },
+                lualine_b = {},
+                lualine_c = {},
+                lualine_x = {},
+                lualine_y = {},
+                lualine_z = {}
+            },
+            extensions = {},
+        }
+    end
 }

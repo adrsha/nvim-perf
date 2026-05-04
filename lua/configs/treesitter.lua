@@ -4,12 +4,10 @@ pcall(function()
 end)
 
 return {
-  ensure_installed = { "lua", "luadoc", "printf", "vim", "vimdoc" },
+    ensure_installed = { "lua", "luadoc", "printf", "vim", "vimdoc", "rust" },
 
-  highlight = {
-    enable = true,
-    use_languagetree = true,
-  },
-
-  indent = { enable = true },
+    rainbow = {
+        enable = true,
+        query = 'rainbow-parens',
+    }
 }

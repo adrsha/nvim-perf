@@ -31,8 +31,8 @@ local colors               = {
     orange  = hex(base_30.orange),
     cyan    = hex(base_30.cyan),
     overlay = hex(base_30.grey_fg),
-    base    = normal_bg,
-    darker  = float_bg,
+    base    = hex(base_16.base00),
+    darker  = hex(base_30.darker_black)
 };
 
 -- Override Normal background if transparency is enabled
@@ -47,15 +47,15 @@ if transparency_enabled then
 end;
 
 vim.api.nvim_set_hl(0, "FloatBorder", { link = "TelescopeBorder" });
-vim.api.nvim_set_hl(0, "Tabline", { link = "LineNr" });
-vim.api.nvim_set_hl(0, "TablineSel", { link = "Pmenu" });
-vim.api.nvim_set_hl(0, "tabline_a_normal", { link = "CursorLineNr" });
-vim.api.nvim_set_hl(0, "tabline_b_normal", { link = "LineNr" });
-vim.api.nvim_set_hl(0, "tabline_c_normal", { link = "LineNr" });
+-- vim.api.nvim_set_hl(0, "tabline_a_normal", { link = "CursorLineNr" });
+-- vim.api.nvim_set_hl(0, "tabline_b_normal", { link = "LineNr" });
+-- vim.api.nvim_set_hl(0, "tabline_c_normal", { link = "LineNr" });
 
 local ColorSets = {
     -- Floating windows should ALWAYS be solid
-    NormalFloat                 = { bg = colors.darker },
+    NormalFloat                 = { bg = darkenColor(colors.darker, 0.3) },
+    TelescopeBorder             = { bg = darkenColor(colors.darker, 0.3), fg = darkenColor(colors.darker, 0.3) },
+    TelescopeNormal             = { bg = darkenColor(colors.darker, 0.3) },
 
     -- LSP Diagnostics
     LspDiagnosticHint           = { fg = colors.green },
@@ -112,6 +112,12 @@ local ColorSets = {
 
     IndentLine                  = { fg = lightenColor(colors.base, 1.0) },
     IndentLineCurrent           = { fg = lightenColor(colors.base, 2.0) },
+    
+    -- Tabline                     = { fg = lightenColor(colors.base, 1.0) },
+    -- tabline_a_normal            = { fg = lightenColor(colors.base, 1.0) },
+    -- tabline_b_normal            = { fg = lightenColor(colors.base, 1.0) },
+    -- tabline_c_normal            = { fg = lightenColor(colors.base, 2.0) },
+    -- TablineSel                  = { fg = lightenColor(colors.base, 3.0) },
 
     -- Symbol usage (solid backgrounds)
     SymbolUsageRounding         = { fg = colors.darker },

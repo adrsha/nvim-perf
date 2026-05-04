@@ -1,10 +1,8 @@
 return {
-    {
-        "nvim-telescope/telescope.nvim",
-        dependencies = {
-            "nvim-treesitter/nvim-treesitter",
-        },
-        cmd = "Telescope",
-        opts = require("configs.telescope"),
-    },
+    'nvim-telescope/telescope.nvim', version = '*',
+    dependencies = {
+        'nvim-lua/plenary.nvim',
+        -- optional but recommended
+        { 'nvim-telescope/telescope-fzf-native.nvim', build = 'make' },
+    }
 }

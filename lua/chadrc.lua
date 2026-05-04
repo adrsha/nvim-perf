@@ -14,7 +14,7 @@ end;
 
 M = {
     base46 = {
-        theme = "chadtain",
+        theme = "everblush",
         hl_add = {},
         integrations = {},
         changed_themes = {
