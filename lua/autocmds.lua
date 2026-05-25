@@ -25,3 +25,16 @@ autocmd({ "UIEnter", "BufReadPost", "BufNewFile" }, {
     end
   end,
 })
+
+autocmd("ColorScheme", {
+    group = vim.api.nvim_create_augroup("UserCustomHighlights", { clear = true }),
+    callback = function()
+        -- Defer so any plugin highlight reset from this same event runs first.
+        vim.schedule(function()
+            local ok, hl = pcall(require, "highlights")
+            if ok and type(hl.set_custom_highlights) == "function" then
+                hl.set_custom_highlights()
+            end
+        end)
+    end,
+})

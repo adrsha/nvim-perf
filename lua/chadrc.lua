@@ -1,185 +1,176 @@
--- This file needs to have same structure as nvconfig.lua
+-- chadrc.lua
+-- Structure must match nvconfig.lua:
 -- https://github.com/NvChad/ui/blob/v3.0/lua/nvconfig.lua
--- Please read that file to know all available options :(
-local M                    = {}
-local generated_theme_path = vim.fn.expand("~/.config/nvim/generated_theme.lua");
-local generated_theme      = nil;
 
-if vim.fn.filereadable(generated_theme_path) == 1 then
-    local ok, theme = pcall(dofile, generated_theme_path);
-    if ok then
-        generated_theme = theme;
+local M          = {};
+
+-- Read a THEME_XXX env var.
+-- Hard error if missing so misconfiguration is obvious.
+local function color(key)
+    local v = vim.env["THEME_" .. key];
+    if v == nil or v == "" then
+        vim.notify(
+            "chadrc: missing env var THEME_" .. key .. " (run set_theme before starting nvim)",
+            vim.log.levels.ERROR
+        );
+        return "#000000";
     end;
+    return v;
+end;
+
+local function build_theme()
+    return {
+        base_16 = {
+            base00 = color("BASE00"),
+            base01 = color("BASE01"),
+            base02 = color("BASE02"),
+            base03 = color("BASE03"),
+            base04 = color("BASE04"),
+            base05 = color("BASE05"),
+            base06 = color("BASE06"),
+            base07 = color("BASE07"),
+            base08 = color("BASE08"),
+            base09 = color("BASE09"),
+            base0A = color("BASE0A"),
+            base0B = color("BASE0B"),
+            base0C = color("BASE0C"),
+            base0D = color("BASE0D"),
+            base0E = color("BASE0E"),
+            base0F = color("BASE0F"),
+        },
+        base_30 = {
+            white          = color("WHITE"),
+            darker_black   = color("DARKER_BLACK"),
+            black          = color("BLACK"),
+            black2         = color("BLACK2"),
+            one_bg         = color("ONE_BG"),
+            one_bg2        = color("ONE_BG2"),
+            one_bg3        = color("ONE_BG3"),
+            grey           = color("GREY"),
+            grey_fg        = color("GREY_FG"),
+            grey_fg2       = color("GREY_FG2"),
+            light_grey     = color("LIGHT_GREY"),
+            red            = color("RED"),
+            baby_pink      = color("BABY_PINK"),
+            pink           = color("PINK"),
+            line           = color("LINE"),
+            green          = color("GREEN"),
+            vibrant_green  = color("VIBRANT_GREEN"),
+            blue           = color("BLUE"),
+            nord_blue      = color("NORD_BLUE"),
+            yellow         = color("YELLOW"),
+            sun            = color("SUN"),
+            purple         = color("PURPLE"),
+            dark_purple    = color("DARK_PURPLE"),
+            teal           = color("TEAL"),
+            orange         = color("ORANGE"),
+            cyan           = color("CYAN"),
+            statusline_bg  = color("STATUSLINE_BG"),
+            lightbg        = color("LIGHTBG"),
+            pmenu_bg       = color("PMENU_BG"),
+            folder_bg      = color("FOLDER_BG"),
+        },
+    };
+end;
+
+-- Reload the theme from current env vars without restarting nvim.
+-- Called by set_theme.fish via: nvim --server $socket --remote-expr 'v:lua.reload_nvchad_theme()'
+--
+-- set_theme.fish writes /tmp/nvim_theme_patch.lua before calling us.
+-- That file assigns all THEME_* values directly into vim.env, patching
+-- the stale process environment so color() reads the correct values.
+_G.reload_nvchad_theme = function()
+    local patch = "/tmp/nvim_theme_patch.lua";
+    if vim.fn.filereadable(patch) == 1 then
+        dofile(patch);
+    else
+        vim.notify("chadrc: /tmp/nvim_theme_patch.lua not found — run set_theme first", vim.log.levels.ERROR);
+        return "error";
+    end;
+
+    vim.g.theme_variant = vim.env.THEME_VARIANT or "dark";
+
+    package.loaded["nvconfig"]    = nil;
+    package.loaded["base46"]      = nil;
+    package.loaded["highlights"]  = nil;
+
+    local nvconfig             = require("nvconfig");
+    local environment_palette  = build_theme();
+    
+    nvconfig.base46.theme      = "onedark";
+    nvconfig.ui.theme          = "onedark";
+    
+    nvconfig.base46.changed_themes = { 
+        ["onedark"] = {
+            base_16 = environment_palette.base_16,
+            base_30 = environment_palette.base_30
+        }
+    };
+
+    -- 4. Compile the newly modified active theme to bytecode
+    require("base46").load_all_highlights();
+    vim.notify("nvchad: theme reloaded", vim.log.levels.INFO);
+
+    -- base46 defers its actual hl writes; schedule here so we run after it settles.
+    vim.schedule(function()
+        package.loaded["highlights"] = nil;
+        require("highlights").set_custom_highlights();
+    end);
+
+    return "ok";
 end;
 
 M = {
     base46 = {
-        theme = "everblush",
-        hl_add = {},
-        integrations = {},
-        changed_themes = {
-            aquarium = {
-                base_16 = {
-                    base00 = '#20202A', -- background
-                    base01 = '#3b3b4d', -- lighter background (used for status bars, line number bg, etc.)
-                    base02 = '#44495E', -- selection background
-                    base03 = '#63718B', -- comments, invisibles, line highlighting
-                    base04 = '#C6D0E9', -- dark foreground (used for status bars)
-                    base05 = '#63718B', -- default foreground, caret, delimiters, operators
-                    base06 = '#C6D0E9', -- light foreground (not often used)
-                    base07 = '#E5E9F0', -- light background (not often used)
-                    base08 = '#ebb9b9', -- variables, XML tags, markup link text, markup lists, diff deleted
-                    base09 = '#ebe3b9', -- integers, boolean, constants, XML attributes, markup link url
-                    base0A = '#ebe3b9', -- classes, markup bold, search text background
-                    base0B = '#caf6bb', -- strings, inherited class, markup code, diff inserted
-                    base0C = '#b8dceb', -- support, regular expressions, escape characters, markup quotes
-                    base0D = '#cddbf9', -- functions, methods, attribute IDs, headings
-                    base0E = '#f6bbe7', -- keywords, storage, selector, markup italic, diff changed
-                    base0F = '#cc9b9d', -- deprecated, opening/closing embedded language tags
-                },
-                base_30 = {
-                    white = '#C6D0E9',
-                    darker_black = '#1a1a22',
-                    black = '#20202A',    -- main background
-                    black2 = '#242430',   -- slightly lighter than bg
-                    one_bg = '#2a2a36',   -- one step lighter
-                    one_bg2 = '#323240',  -- two steps lighter
-                    one_bg3 = '#3a3a48',  -- three steps lighter
-                    grey = '#44495E',     -- for borders, inactive elements
-                    grey_fg = '#4a4f64',  -- slightly lighter grey
-                    grey_fg2 = '#505570', -- even lighter grey
-                    light_grey = '#5a5f74',
-                    red = '#ebb9b9',
-                    baby_pink = '#f6bbe7',
-                    pink = '#cc9b9d',
-                    line = '#2C2E3E', -- for indent lines, etc.
-                    green = '#caf6bb',
-                    vibrant_green = '#a3ccad',
-                    blue = '#cddbf9',
-                    nord_blue = '#B8C9EA',
-                    yellow = '#ebe3b9',
-                    sun = '#d1ba97',
-                    purple = '#f6bbe7',
-                    dark_purple = '#c497b3',
-                    teal = '#b8dceb',
-                    orange = '#ebe3b9',
-                    cyan = '#95C2D1',
-                    statusline_bg = '#242430',
-                    lightbg = '#2a2a36',
-                    pmenu_bg = '#cddbf9',
-                    folder_bg = '#cddbf9',
-                }
-            },
-            everblush = generated_theme and generated_theme.everblush or {
-                base_16 = {
-                    base00 = '#0e1416', -- background
-                },
-            },
-            chadtain = {
-                base_16 = {
-                    base00 = '#131C19', -- background
-                    base01 = '#1a2622', -- lighter background (used for status bars, line number bg, etc.)
-                    base02 = '#222e2b', -- selection background
-                    base03 = '#2c382d', -- comments, invisibles, line highlighting
-                    base04 = '#3c474a', -- dark foreground (used for status bars)
-                    base05 = '#444F4C', -- default foreground, caret, delimiters, operators
-                    base06 = '#525F5A', -- light foreground (not often used)
-                    base07 = '#606F68', -- light background (not often used)
-                    base08 = '#735959', -- variables, XML tags, markup link text, markup lists, diff deleted
-                    base09 = '#7a573f', -- integers, boolean, constants, XML attributes, markup link url
-                    base0A = '#4e4737', -- classes, markup bold, search text background
-                    base0B = '#395242', -- strings, inherited class, markup code, diff inserted
-                    base0C = '#4c685f', -- support, regular expressions, escape characters, markup quotes
-                    base0D = '#41575c', -- functions, methods, attribute IDs, headings
-                    base0E = '#5e526a', -- keywords, storage, selector, markup italic, diff changed
-                    base0F = '#4e3837', -- deprecated, opening/closing embedded language tags
-                },
-                base_30 = {
-                    white = '#444F4C',
-                    darker_black = '#0d1513',
-                    black = '#131C19',    -- main background
-                    black2 = '#1a2622',   -- slightly lighter than bg
-                    one_bg = '#1f2b27',   -- one step lighter
-                    one_bg2 = '#242f2c',  -- two steps lighter
-                    one_bg3 = '#293431',  -- three steps lighter
-                    grey = '#2c382d',     -- for borders, inactive elements
-                    grey_fg = '#323d39',  -- slightly lighter grey
-                    grey_fg2 = '#38433f', -- even lighter grey
-                    light_grey = '#3e4845',
-                    red = '#735959',
-                    baby_pink = '#5e526a',
-                    pink = '#4e3837',
-                    line = '#1f2b27', -- for indent lines, etc.
-                    green = '#395242',
-                    vibrant_green = '#2c3f33',
-                    blue = '#41575c',
-                    nord_blue = '#324448',
-                    yellow = '#7a573f',
-                    sun = '#4e4737',
-                    purple = '#5e526a',
-                    dark_purple = '#373e4e',
-                    teal = '#4c685f',
-                    orange = '#7a573f',
-                    cyan = '#374c4e',
-                    statusline_bg = '#1a2622',
-                    lightbg = '#1f2b27',
-                    pmenu_bg = '#41575c',
-                    folder_bg = '#41575c',
-                }
-            },
-        },
-        transparency = false,
+        theme          = "onedark",
+        hl_add         = {},
+        integrations   = {},
+        changed_themes = { ["onedark"] = build_theme() },
+        transparency   = false,
     },
 
     ui = {
         cmp = {
-            icons_left = true,
-            lspkind_text = true,
-            style = "flat_dark",
+            icons_left    = true,
+            lspkind_text  = true,
+            style         = "flat_dark",
             format_colors = {
                 tailwind = true,
-                icon = "󱓻",
+                icon     = "󱓻",
             },
         },
         telescope = { style = "borderless" },
         tabufline = {
-            enabled = false,
+            enabled  = false,
             lazyload = true,
-            order = { "treeOffset", "buffers", "tabs", "btns" },
-            modules = nil,
+            order    = { "treeOffset", "buffers", "tabs", "btns" },
+            modules  = nil,
         },
     },
 
     term = {
         winopts = { number = false, relativenumber = false },
-        sizes = { sp = 0.3, vsp = 0.2, ["bo sp"] = 0.3, ["bo vsp"] = 0.2 },
-        float = {
+        sizes   = { sp = 0.3, vsp = 0.2, ["bo sp"] = 0.3, ["bo vsp"] = 0.2 },
+        float   = {
             relative = "editor",
-            row = 0.3,
-            col = 0.1,
-            width = 0.8,
-            height = 0.9,
-            border = "single",
+            row      = 0.3,
+            col      = 0.1,
+            width    = 0.8,
+            height   = 0.9,
+            border   = "single",
         },
     },
 
-    lsp = { signature = true },
-
-    mason = { pkgs = {} },
+    lsp      = { signature = true },
+    mason    = { pkgs = {} },
 
     colorify = {
-        enabled = true,
-        mode = "virtual",
+        enabled   = true,
+        mode      = "virtual",
         virt_text = "󱓻 ",
         highlight = { hex = true, lspvars = true },
     },
-}
+};
 
--- M.nvdash = { load_on_startup = true }
--- M.ui = {
---       tabufline = {
---          lazyload = false
---      }
--- }
 
-return M
+return M;

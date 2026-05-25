@@ -76,28 +76,46 @@ M.defaults = function()
     -- Use new vim.lsp.config API for Neovim 0.11+
     vim.lsp.config("*", { capabilities = M.capabilities, on_init = M.on_init })
     vim.lsp.config("lua_ls", { settings = lua_lsp_settings })
+
     vim.lsp.enable "lua_ls"
 end
 
-local servers = {
-    html = {},
-    cssls = {},
-    clangd = {},
-    astro = {},
-    bashls = {},
-    lua_ls = {},
-    ts_ls = {},
-    nil_ls = {},
+local mason_path = vim.fn.stdpath("data") .. "/mason/packages/typescript-language-server"
+local tsdk       = mason_path .. "/node_modules/typescript/lib"
 
-    rust_analyzer = {},
-    kotlin_language_server = {},
+local servers = {
+    html    = {},
+    cssls   = {},
+    clangd  = {},
+    bashls  = {},
+    lua_ls  = {},
+    nil_ls  = {},
+
+    rust_analyzer            = {},
+    kotlin_language_server   = {},
+
+    astro = {
+        init_options = {
+            typescript = {
+                tsdk = tsdk,
+            },
+        },
+    },
+
+    tsserver = {
+        init_options = {
+            typescript = {
+                tsdk = tsdk,
+            },
+        },
+    },
 
     pyright = {
         settings = {
             python = {
                 analysis = {
-                    autoSearchPaths = true,
-                    typeCheckingMode = "basic",
+                    autoSearchPaths   = true,
+                    typeCheckingMode  = "basic",
                 },
             },
         },
