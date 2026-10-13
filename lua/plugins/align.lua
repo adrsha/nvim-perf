@@ -39,33 +39,5 @@ return {
             end,
             NS
         )
-
-        -- Example gawip to align a paragraph to a string with previews
-        -- vim.keymap.set(
-        --     'n',
-        --     'gaw',
-        --     function()
-        --         local a = require 'align'
-        --         a.operator(
-        --             a.align_to_string,
-        --             {
-        --                 regex = false,
-        --                 preview = true,
-        --             }
-        --         )
-        --     end,
-        --     NS
-        -- )
-        --
-        -- -- Example gaaip to align a paragraph to 1 character
-        -- vim.keymap.set(
-        --     'n',
-        --     'gaa',
-        --     function()
-        --         local a = require 'align'
-        --         a.operator(a.align_to_char)
-        --     end,
-        --     NS
-        -- )
     end
 }

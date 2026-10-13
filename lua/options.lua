@@ -40,10 +40,10 @@ opt.cursorline = true
 
 opt.tabstop = 4
 opt.softtabstop = 4
-opt.shiftwidth = 0
+opt.shiftwidth = 4
 opt.autoread = true
 -- opt.autoindent = false
-opt.smartindent = true
+opt.smartindent = false
 
 opt.wrap = false
 opt.expandtab = true
@@ -66,6 +66,7 @@ g.loaded_node_provider = 0
 g.loaded_python3_provider = 0
 g.loaded_perl_provider = 0
 g.loaded_ruby_provider = 0
+g.editorconfig = true
 
 -- g.neovide_opacity = 0.4
 -- g.transparency = 0.9

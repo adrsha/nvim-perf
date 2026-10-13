@@ -80,45 +80,50 @@ end;
 -- That file assigns all THEME_* values directly into vim.env, patching
 -- the stale process environment so color() reads the correct values.
 _G.reload_nvchad_theme = function()
-    local patch = "/tmp/nvim_theme_patch.lua";
+    local patch = "/tmp/nvim_theme_patch.lua"
     if vim.fn.filereadable(patch) == 1 then
-        dofile(patch);
+        dofile(patch)
     else
-        vim.notify("chadrc: /tmp/nvim_theme_patch.lua not found — run set_theme first", vim.log.levels.ERROR);
-        return "error";
-    end;
+        vim.notify("chadrc: /tmp/nvim_theme_patch.lua not found — run set_theme first", vim.log.levels.ERROR)
+        return "error"
+    end
 
-    vim.g.theme_variant = vim.env.THEME_VARIANT or "dark";
+    vim.g.theme_variant = vim.env.THEME_VARIANT or "dark"
+    vim.o.background    = vim.g.theme_variant
 
-    package.loaded["nvconfig"]    = nil;
-    package.loaded["base46"]      = nil;
-    package.loaded["highlights"]  = nil;
+    -- Clear all cached modules so everything re-reads from scratch.
+    package.loaded["nvconfig"]   = nil
+    package.loaded["base46"]     = nil
+    package.loaded["highlights"] = nil
 
-    local nvconfig             = require("nvconfig");
-    local environment_palette  = build_theme();
-    
-    nvconfig.base46.theme      = "onedark";
-    nvconfig.ui.theme          = "onedark";
-    
-    nvconfig.base46.changed_themes = { 
+    local nvconfig            = require("nvconfig")
+    local environment_palette = build_theme()
+
+    nvconfig.base46.theme = "onedark"
+    nvconfig.ui.theme     = "onedark"
+
+    nvconfig.base46.changed_themes = {
         ["onedark"] = {
             base_16 = environment_palette.base_16,
-            base_30 = environment_palette.base_30
+            base_30 = environment_palette.base_30,
         }
-    };
+    }
 
-    -- 4. Compile the newly modified active theme to bytecode
-    require("base46").load_all_highlights();
-    vim.notify("nvchad: theme reloaded", vim.log.levels.INFO);
+    local base46 = require("base46")
 
-    -- base46 defers its actual hl writes; schedule here so we run after it settles.
+    -- Compile first so load_all_highlights reads the correct bytecode,
+    -- not whatever was on disk from the previous theme.
+    base46.compile()
+    base46.load_all_highlights()
+
     vim.schedule(function()
-        package.loaded["highlights"] = nil;
-        require("highlights").set_custom_highlights();
-    end);
+        package.loaded["highlights"] = nil
+        require("highlights").set_custom_highlights()
+    end)
 
-    return "ok";
-end;
+    vim.notify("nvchad: theme reloaded", vim.log.levels.INFO)
+    return "ok"
+end
 
 M = {
     base46 = {
@@ -172,5 +177,13 @@ M = {
     },
 };
 
+-- Compile on first load so the cache matches the current env palette.
+vim.schedule(function()
+    local base46 = require("base46")
+    base46.compile()
+    base46.load_all_highlights()
+    require("highlights").set_custom_highlights()
+end)
 
 return M;
+

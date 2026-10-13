@@ -40,7 +40,7 @@ M.set_custom_highlights = function ()
     -- In light themes: subtle UI elements need darkening   (push away from white)
     local function subtle_shift(color, amount)
         if light_theme then
-            return darkenColor(color, amount * 0.5);
+            return darkenColor(color, amount);   -- no multiplier needed
         else
             return lightenColor(color, amount);
         end;
@@ -61,13 +61,13 @@ M.set_custom_highlights = function ()
     local ColorSets = {
         -- Floating windows should ALWAYS be solid
         NormalFloat                 = { bg = float_bg_val },
-        FloatBorder                 = { bg = float_bg_val, fg = float_bg_val },
-        TelescopeBorder             = { bg = float_bg_val, fg = float_bg_val },
+        FloatBorder                 = { bg = float_bg_val, fg = colors.cyan },
+        TelescopeBorder             = { bg = float_bg_val, fg = colors.cyan },
         TelescopeNormal             = { bg = float_bg_val },
 
         --Comments
-        Comment                     = { fg = subtle_shift(colors.base, 1.0) },
-        ["@comment"]                = { fg = subtle_shift(colors.base, 1.0) },
+        -- Comment                     = { fg = subtle_shift(colors.base, 1.0) },
+        -- ["@comment"]                = { fg = subtle_shift(colors.base, 1.0) },
         
         -- LSP Diagnostics
         LspDiagnosticHint           = { fg = colors.green },
@@ -123,12 +123,12 @@ M.set_custom_highlights = function ()
         CursorLineNr                = { fg = colors.overlay },
 
         -- Whitespace dots/tabs: nudged away from bg so they're visible but muted
-        WhiteSpace                  = { fg = subtle_shift(colors.base, 0.5) },
-        LineNr                      = { fg = subtle_shift(colors.base, 0.5) },
+        -- WhiteSpace                  = { fg = subtle_shift(colors.base, 0.5) },
+        -- LineNr                      = { fg = subtle_shift(colors.base, 0.5) },
 
         -- Indent guides: same logic, current indent slightly more visible
-        IndentLine                  = { fg = subtle_shift(colors.base, 0.4) },
-        IndentLineCurrent           = { fg = subtle_shift(colors.base, 0.7) },
+        -- IndentLine                  = { fg = subtle_shift(colors.base, 0.4) },
+        -- IndentLineCurrent           = { fg = subtle_shift(colors.base, 0.7) },
 
         -- Symbol usage (solid backgrounds)
         SymbolUsageRounding         = { fg = colors.darker },
@@ -153,7 +153,7 @@ M.set_custom_highlights = function ()
         TinyInlineDiagnosticVirtualTextInfo  = { bg = mergeColors(colors.blue,   colors.base, 0.2), fg = colors.blue },
         TinyInlineDiagnosticVirtualTextError = { bg = mergeColors(colors.red,    colors.base, 0.2), fg = colors.red },
 
-        LspInlayHint                = { bg = nil, fg = subtle_shift(colors.base, 0.2) },
+        LspInlayHint = { fg = subtle_shift(colors.base, 0.2) },
 
         -- TreeSitter context (solid backgrounds)
         TreeSitterContext           = { fg = colors.overlay, bg = colors.darker },
@@ -196,12 +196,9 @@ M.set_custom_highlights = function ()
         ScrollbarCursor             = { fg = colors.darker },
     };
     
-    vim.notify("nvchad: colors: " .. ColorSets.TelescopeBorder.bg ..", ".. ColorSets.TelescopeBorder.fg, vim.log.levels.INFO);
     for hl, col in pairs(ColorSets) do
         vim.api.nvim_set_hl(0, hl, col);
     end;
-    
-    vim.notify("nvchad: highlights loaded", vim.log.levels.INFO);
 end
 
 return M;

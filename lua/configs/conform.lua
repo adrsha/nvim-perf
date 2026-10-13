@@ -1,15 +1,29 @@
 local options = {
   formatters_by_ft = {
+    astro = { lsp_format = "fallback" },
     lua = { "stylua" },
-    -- css = { "prettier" },
-    -- html = { "prettier" },
+    css = { "prettierd" },
+    html = { "prettierd" },
+    python = { "black" },
+    rust = { "rustfmt", lsp_format = "fallback" },
+    javascript = { lsp_format = "fallback" },
+    typescript = { lsp_format = "fallback" },
   },
 
-  -- format_on_save = {
-  --   -- These options will be passed to conform.format()
-  --   timeout_ms = 500,
-  --   lsp_fallback = true,
-  -- },
+  formatters = {
+    stylua = {},
+
+    prettierd = {},
+
+    black = {},
+
+    rustfmt = {
+      prepend_args = {
+        "--config",
+        "tab_spaces=4,hard_tabs=false",
+      },
+    },
+  },
 }
 
 return options
