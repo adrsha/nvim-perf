@@ -10,17 +10,13 @@ local function get_colors(base46)
     return base_16, base_30
 end
 
-local transparency_enabled = vim.g.transparency or false;
-
 local function hex(h)
     return tonumber("0x" .. h:sub(2));
 end;
 
-
 M.set_custom_highlights = function ()
     local base46  = require("base46");
     local base_16, base_30 = get_colors(base46);
-
     local colors = {
         green   = hex(base_30.green),
         yellow  = hex(base_30.yellow),
@@ -36,18 +32,16 @@ M.set_custom_highlights = function ()
     local variant     = vim.g.theme_variant or vim.env.THEME_VARIANT or "dark";
     local light_theme = variant == "light";
 
-    -- In dark themes:  subtle UI elements need lightening  (push away from black)
-    -- In light themes: subtle UI elements need darkening   (push away from white)
     local function subtle_shift(color, amount)
         if light_theme then
-            return darkenColor(color, amount);   -- no multiplier needed
+            return darkenColor(color, amount);
         else
             return lightenColor(color, amount);
         end;
     end;
 
     -- Override Normal background if transparency is enabled
-    if transparency_enabled then
+    if vim.g.transparency then
         vim.api.nvim_set_hl(0, "Normal",        { bg = "NONE" });
         vim.api.nvim_set_hl(0, "NormalNC",      { bg = "NONE" });
         vim.api.nvim_set_hl(0, "SignColumn",    { bg = "NONE" });
@@ -57,18 +51,28 @@ M.set_custom_highlights = function ()
     end;
 
     local float_bg_val = subtle_shift(colors.base, 0.3);
+    local indent_dim_val = subtle_shift(colors.base, 0.15);
 
     local ColorSets = {
-        -- Floating windows should ALWAYS be solid
+        -- Floating windows & LSP Hover popups (Uniform background and border color)
         NormalFloat                 = { bg = float_bg_val },
-        FloatBorder                 = { bg = float_bg_val, fg = colors.cyan },
-        TelescopeBorder             = { bg = float_bg_val, fg = colors.cyan },
-        TelescopeNormal             = { bg = float_bg_val },
+        FloatBorder                 = { bg = float_bg_val, fg = float_bg_val },
+        FloatTitle                  = { bg = float_bg_val, fg = colors.overlay, bold = true },
+        HoverBorder                 = { bg = float_bg_val, fg = float_bg_val },
+        LspInfoBorder               = { bg = float_bg_val, fg = float_bg_val },
 
-        --Comments
-        -- Comment                     = { fg = subtle_shift(colors.base, 1.0) },
-        -- ["@comment"]                = { fg = subtle_shift(colors.base, 1.0) },
-        
+        -- Telescope (Unified border and body background)
+        TelescopeNormal             = { bg = float_bg_val },
+        TelescopeBorder             = { bg = float_bg_val, fg = float_bg_val },
+        TelescopePromptNormal       = { bg = float_bg_val },
+        TelescopePromptBorder       = { bg = float_bg_val, fg = float_bg_val },
+        TelescopeResultsNormal      = { bg = float_bg_val },
+        TelescopeResultsBorder      = { bg = float_bg_val, fg = float_bg_val },
+        TelescopePreviewNormal      = { bg = float_bg_val },
+        TelescopePreviewBorder      = { bg = float_bg_val, fg = float_bg_val },
+        TelescopeTitle              = { bg = float_bg_val, fg = colors.overlay, bold = true },
+        TelescopePromptTitle        = { bg = float_bg_val, fg = colors.cyan, bold = true },
+
         -- LSP Diagnostics
         LspDiagnosticHint           = { fg = colors.green },
         LspDiagnosticWarn           = { fg = colors.orange },
@@ -122,13 +126,17 @@ M.set_custom_highlights = function ()
         CursorLine                  = { bg = colors.base },
         CursorLineNr                = { fg = colors.overlay },
 
-        -- Whitespace dots/tabs: nudged away from bg so they're visible but muted
-        -- WhiteSpace                  = { fg = subtle_shift(colors.base, 0.5) },
-        -- LineNr                      = { fg = subtle_shift(colors.base, 0.5) },
-
-        -- Indent guides: same logic, current indent slightly more visible
-        -- IndentLine                  = { fg = subtle_shift(colors.base, 0.4) },
-        -- IndentLineCurrent           = { fg = subtle_shift(colors.base, 0.7) },
+        -- Muted Indent Guides & Whitespace (Fixes bright characters on blank lines)
+        Whitespace                  = { fg = indent_dim_val },
+        NonText                     = { fg = indent_dim_val },
+        SpecialKey                  = { fg = indent_dim_val },
+        IblIndent                   = { fg = indent_dim_val },
+        IblWhitespace               = { fg = indent_dim_val },
+        IblScope                    = { fg = subtle_shift(colors.base, 0.35) },
+        IndentLine                  = { fg = indent_dim_val },
+        IndentLineCurrent           = { fg = subtle_shift(colors.base, 0.35) },
+        IndentBlanklineChar         = { fg = indent_dim_val },
+        IndentBlanklineSpaceChar    = { fg = indent_dim_val },
 
         -- Symbol usage (solid backgrounds)
         SymbolUsageRounding         = { fg = colors.darker },
@@ -195,7 +203,7 @@ M.set_custom_highlights = function ()
         ScrollbarError              = { fg = colors.red },
         ScrollbarCursor             = { fg = colors.darker },
     };
-    
+
     for hl, col in pairs(ColorSets) do
         vim.api.nvim_set_hl(0, hl, col);
     end;

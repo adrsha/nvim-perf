@@ -3,22 +3,26 @@
 -- https://github.com/NvChad/ui/blob/v3.0/lua/nvconfig.lua
 
 local M          = {};
+local theme_state = require("theme_state");
 
--- Read a THEME_XXX env var.
--- Hard error if missing so misconfiguration is obvious.
+-- Seed globals used by highlights.lua before the first compile.
+vim.g.theme_variant = theme_state.variant();
+vim.g.transparency  = theme_state.transparent();
+
+-- Read a theme key from active.json (env var THEME_XXX as fallback).
+-- Missing keys are collected; build_theme() then returns nil and the config
+-- falls back to NvChad's built-in "onedark" instead of a broken palette.
+local missing = {};
 local function color(key)
-    local v = vim.env["THEME_" .. key];
+    local v = theme_state.get(key);
     if v == nil or v == "" then
-        vim.notify(
-            "chadrc: missing env var THEME_" .. key .. " (run set_theme before starting nvim)",
-            vim.log.levels.ERROR
-        );
-        return "#000000";
+        table.insert(missing, key);
+        return nil;
     end;
     return v;
 end;
 
-local function build_theme()
+local function build_palette()
     return {
         base_16 = {
             base00 = color("BASE00"),
@@ -73,23 +77,41 @@ local function build_theme()
     };
 end;
 
--- Reload the theme from current env vars without restarting nvim.
--- Called by set_theme.fish via: nvim --server $socket --remote-expr 'v:lua.reload_nvchad_theme()'
---
--- set_theme.fish writes /tmp/nvim_theme_patch.lua before calling us.
--- That file assigns all THEME_* values directly into vim.env, patching
--- the stale process environment so color() reads the correct values.
-_G.reload_nvchad_theme = function()
-    local patch = "/tmp/nvim_theme_patch.lua"
-    if vim.fn.filereadable(patch) == 1 then
-        dofile(patch)
-    else
-        vim.notify("chadrc: /tmp/nvim_theme_patch.lua not found — run set_theme first", vim.log.levels.ERROR)
-        return "error"
-    end
+-- Returns the palette, or nil when theme-manager's data is missing or
+-- incomplete (daemon never ran, active.json absent or broken, ...).
+local function build_theme()
+    missing = {};
+    local palette = build_palette();
+    if #missing > 0 then
+        vim.notify_once(
+            "chadrc: theme-manager data incomplete (missing: " .. table.concat(missing, ", ")
+            .. "); using the built-in onedark theme",
+            vim.log.levels.WARN
+        );
+        return nil;
+    end;
+    return palette;
+end;
 
-    vim.g.theme_variant = vim.env.THEME_VARIANT or "dark"
+-- Overrides for base46: the theme-manager palette, or {} so that base46 uses
+-- its own built-in onedark.
+local function changed_themes()
+    local palette = build_theme();
+    if palette then
+        return { ["onedark"] = palette };
+    end;
+    return {};
+end;
+
+-- Reload the theme without restarting nvim.
+-- Called automatically by theme_state.watch() (see init.lua) whenever
+-- theme-daemon republishes ~/.local/state/theme/active.json.
+_G.reload_nvchad_theme = function()
+    theme_state.refresh()
+
+    vim.g.theme_variant = theme_state.variant()
     vim.o.background    = vim.g.theme_variant
+    vim.g.transparency  = theme_state.transparent()
 
     -- Clear all cached modules so everything re-reads from scratch.
     package.loaded["nvconfig"]   = nil
@@ -97,17 +119,12 @@ _G.reload_nvchad_theme = function()
     package.loaded["highlights"] = nil
 
     local nvconfig            = require("nvconfig")
-    local environment_palette = build_theme()
 
     nvconfig.base46.theme = "onedark"
     nvconfig.ui.theme     = "onedark"
+    nvconfig.base46.transparency = vim.g.transparency
 
-    nvconfig.base46.changed_themes = {
-        ["onedark"] = {
-            base_16 = environment_palette.base_16,
-            base_30 = environment_palette.base_30,
-        }
-    }
+    nvconfig.base46.changed_themes = changed_themes()
 
     local base46 = require("base46")
 
@@ -119,6 +136,8 @@ _G.reload_nvchad_theme = function()
     vim.schedule(function()
         package.loaded["highlights"] = nil
         require("highlights").set_custom_highlights()
+        -- Let plugins that cache colors (lualine, ...) rebuild themselves.
+        vim.api.nvim_exec_autocmds("User", { pattern = "ThemeReloaded", modeline = false })
     end)
 
     vim.notify("nvchad: theme reloaded", vim.log.levels.INFO)
@@ -130,8 +149,8 @@ M = {
         theme          = "onedark",
         hl_add         = {},
         integrations   = {},
-        changed_themes = { ["onedark"] = build_theme() },
-        transparency   = false,
+        changed_themes = changed_themes(),
+        transparency   = theme_state.transparent(),
     },
 
     ui = {
